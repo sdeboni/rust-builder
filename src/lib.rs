@@ -1,3 +1,5 @@
+// This version with cloning is 2x slower thatn the version
+// based on passing and maintaining references only
 pub mod graph {
     use std::collections::HashMap;
     pub mod graph_items {
