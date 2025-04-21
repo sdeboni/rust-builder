@@ -1,28 +1,25 @@
-// This version with cloning is 2x slower thatn the version
-// based on passing and maintaining references only
+// iteration 2 inspired by BrightOne's solution using iter().map() to create HashMaps
 pub mod graph {
     use std::collections::HashMap;
     pub mod graph_items {
         pub mod edge {
             use std::collections::HashMap;
             #[derive(Debug, PartialEq, Clone)]
-            pub struct Edge {
-                from: String,
-                to: String,
-                attrs: HashMap<String, String>,
+            pub struct Edge<'a> {
+                from: &'a str,
+                to: &'a str,
+                attrs: HashMap<&'a str, &'a str>,
             }
-            impl Edge {
-                pub fn new(from: &str, to: &str) -> Self {
+            impl<'a> Edge<'a> {
+                pub fn new(from: &'a str, to: &'a str) -> Self {
                     Edge {
-                        from: from.to_string(),
-                        to: to.to_string(),
+                        from,
+                        to,
                         attrs: HashMap::new(),
                     }
                 }
-                pub fn with_attrs(mut self, attrs: &[(&str, &str)]) -> Self {
-                    for attr in attrs.iter() {
-                        self.attrs.insert(attr.0.to_string(), attr.1.to_string());
-                    }
+                pub fn with_attrs(mut self, attrs: &[(&'a str, &'a str)]) -> Self {
+                    self.attrs = attrs.iter().map(|&(k, v)| (k, v)).collect();
                     self
                 }
                 pub fn attr(&self, key: &str) -> Option<&str> {
@@ -34,21 +31,19 @@ pub mod graph {
         pub mod node {
             use std::collections::HashMap;
             #[derive(Debug, PartialEq, Clone)]
-            pub struct Node {
-                pub name: String,
-                pub attrs: HashMap<String, String>,
+            pub struct Node<'a> {
+                pub name: &'a str,
+                pub attrs: HashMap<&'a str, &'a str>,
             }
-            impl Node {
+            impl<'a> Node<'a> {
                 pub fn new(name: &str) -> Node {
                     Node {
-                        name: name.to_string(),
+                        name,
                         attrs: HashMap::new(),
                     }
                 }
-                pub fn with_attrs(mut self, attrs: &[(&str, &str)]) -> Self {
-                    for attr in attrs.iter() {
-                        self.attrs.insert(attr.0.to_string(), attr.1.to_string());
-                    }
+                pub fn with_attrs(mut self, attrs: &[(&'a str, &'a str)]) -> Self {
+                    self.attrs = attrs.iter().map(|&(k, v)| (k, v)).collect();
                     self
                 }
                 pub fn attr(&self, key: &str) -> Option<&str> {
@@ -58,32 +53,30 @@ pub mod graph {
         }
     }
 
-    pub struct Graph {
-        pub nodes: Vec<graph_items::node::Node>,
-        pub edges: Vec<graph_items::edge::Edge>,
-        pub attrs: HashMap<String, String>,
+    pub struct Graph<'a> {
+        pub nodes: Vec<graph_items::node::Node<'a>>,
+        pub edges: Vec<graph_items::edge::Edge<'a>>,
+        pub attrs: HashMap<&'a str, &'a str>,
     }
 
-    impl Graph {
-        pub fn new() -> Graph {
+    impl<'a> Graph<'a> {
+        pub fn new() -> Graph<'a> {
             Graph {
                 nodes: Vec::new(),
                 edges: Vec::new(),
                 attrs: HashMap::new(),
             }
         }
-        pub fn with_nodes(mut self, nodes: &[graph_items::node::Node]) -> Graph {
+        pub fn with_nodes(mut self, nodes: &[graph_items::node::Node<'a>]) -> Graph<'a> {
             self.nodes = nodes.to_vec();
             self
         }
-        pub fn with_edges(mut self, edges: &[graph_items::edge::Edge]) -> Graph {
+        pub fn with_edges(mut self, edges: &[graph_items::edge::Edge<'a>]) -> Graph<'a> {
             self.edges = edges.to_vec();
             self
         }
-        pub fn with_attrs(mut self, attrs: &[(&str, &str)]) -> Self {
-            for attr in attrs.iter() {
-                self.attrs.insert(attr.0.to_string(), attr.1.to_string());
-            }
+        pub fn with_attrs(mut self, attrs: &[(&'a str, &'a str)]) -> Self {
+            self.attrs = attrs.iter().map(|&(k, v)| (k, v)).collect();
             self
         }
         pub fn node(&self, name: &str) -> Option<graph_items::node::Node> {
